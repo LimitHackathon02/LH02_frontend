@@ -4,9 +4,13 @@ class RecommendationResult {
     required this.groupSummary,
     required this.centerName,
     required this.fallback,
+    this.body = '',
   });
 
-  factory RecommendationResult.fromJson(Map<String, dynamic> json) {
+  factory RecommendationResult.fromJson(
+    Map<String, dynamic> json, {
+    String body = '',
+  }) {
     final items = json['recommendations'];
     if (items is! List) {
       throw const FormatException('추천 목록이 없는 서버 응답입니다.');
@@ -22,6 +26,7 @@ class RecommendationResult {
       centerName:
           (json['center'] as Map<String, dynamic>?)?['name'] as String? ?? '',
       fallback: json['fallback'] == true,
+      body: body,
     );
   }
 
@@ -29,6 +34,7 @@ class RecommendationResult {
   final String groupSummary;
   final String centerName;
   final bool fallback;
+  final String body;
 }
 
 class PlaceRecommendation {

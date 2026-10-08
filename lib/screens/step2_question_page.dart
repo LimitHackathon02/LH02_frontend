@@ -12,7 +12,7 @@ class Step2Answers {
     _ => disText,
   };
 
-  Map<String, String> toPersonJson({required String name}) => {
+  Map<String, String> toPersonJson({String name = '나'}) => {
     'name': name.trim().isEmpty ? '사용자' : name.trim(),
     'text': _combinedText,
   };
@@ -23,7 +23,7 @@ class Step2Answers {
     if (departure.isNotEmpty) {
       final departureText = departure.contains('출발')
           ? departure
-          : '$departure에서 출발해';
+          : '$departure에서 출발해요';
       parts.add(_withEnding(departureText));
     }
     if (likeText.trim().isNotEmpty) parts.add(_withEnding(likeText.trim()));
@@ -38,7 +38,7 @@ class Step2Answers {
 
   static Map<String, Object> toRequestJson(
     Iterable<Step2Answers> people, {
-    required String name,
+    String name = '나',
   }) => {
     'people': people.map((person) => person.toPersonJson(name: name)).toList(),
   };
@@ -122,7 +122,7 @@ class _Step2QuestionPageState extends State<Step2QuestionPage> {
                 top: 0,
                 height: constraints.maxWidth * .5,
                 child: Image.asset(
-                  'assets/screens/2-1-' + (widget.step + 1).toString() + '/bgd.png',
+                  'assets/screens/2-1-${widget.step + 1}/bgd.png',
                   fit: BoxFit.fill,
                 ),
               ),
@@ -149,7 +149,7 @@ class _Step2QuestionPageState extends State<Step2QuestionPage> {
                                 Padding(
                                   padding: const EdgeInsets.only(left: 7),
                                   child: Image.asset(
-                                    'assets/screens/2-1-' + (widget.step + 1).toString() + '/mannami.png',
+                                    'assets/screens/2-1-${widget.step + 1}/mannami.png',
                                     width: 56,
                                     height: 48,
                                     fit: BoxFit.contain,
@@ -296,7 +296,7 @@ class _Step2QuestionPageState extends State<Step2QuestionPage> {
           right: 0,
           top: 50,
           child: Image.asset(
-            'assets/screens/2-1-' + (widget.step + 1).toString() + '/upper step.png',
+            'assets/screens/2-1-${widget.step + 1}/upper step.png',
             width: 300,
             height: 50,
             fit: BoxFit.fill,

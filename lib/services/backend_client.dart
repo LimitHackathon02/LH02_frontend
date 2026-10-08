@@ -59,11 +59,12 @@ class BackendClient {
       );
     }
     try {
-      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      final body = utf8.decode(response.bodyBytes);
+      final data = jsonDecode(body);
       if (data is! Map<String, dynamic>) {
         throw const FormatException('JSON 객체가 필요합니다.');
       }
-      return RecommendationResult.fromJson(data);
+      return RecommendationResult.fromJson(data, body: body);
     } on FormatException {
       throw const BackendConnectionException(
         '서버의 추천 결과를 읽을 수 없어요. API 응답을 확인해주세요.',
