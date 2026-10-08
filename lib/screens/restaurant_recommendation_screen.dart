@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import '3-2.dart';
+import '../models/recommendation_result.dart';
+import 'recommendation_detail_screen.dart';
 
 class RestaurantRecommendationScreen extends StatefulWidget {
-  const RestaurantRecommendationScreen({super.key});
+  const RestaurantRecommendationScreen({required this.result, super.key});
+  final RecommendationResult result;
   @override
   State<RestaurantRecommendationScreen> createState() =>
       _RestaurantRecommendationScreenState();
@@ -13,13 +15,7 @@ class _RestaurantRecommendationScreenState
   bool _showMore = false;
   static const _ink = Color(0xFF2B1715);
   static const _muted = Color(0xFF858585);
-  static const _restaurants = [
-    ('졸리앤몰트', '서울 노원구 노해로 88길 20 5층', '이탈리안', '차분한', '뷰가 좋은'),
-    ('수시로스시', '서울 노원구 노해로 479 1층', '일식', '특별한', '대화하기 좋은'),
-    ('다함닭갈비', '서울 노원구 상계3·4동 38-6 1층', '한식', '오래 머물기 좋은', '대화하기 좋은'),
-    ('오늘의 식탁', '서울 노원구 동일로 123길 8', '한식', '아늑한', '혼밥 추천'),
-    ('작은 파스타집', '서울 노원구 상계로 41', '이탈리안', '데이트', '분위기 좋은'),
-  ];
+  List<PlaceRecommendation> get _restaurants => widget.result.recommendations;
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: Colors.white,
@@ -45,27 +41,35 @@ class _RestaurantRecommendationScreenState
                         children: [
                           _intro(),
                           ...List.generate(
-                            _showMore ? _restaurants.length : 3,
+                            _showMore
+                                ? _restaurants.length
+                                : _restaurants.length.clamp(0, 3),
                             _restaurantCard,
                           ),
-                          TextButton.icon(
-                            onPressed: () =>
-                                setState(() => _showMore = !_showMore),
-                            icon: Icon(
-                              _showMore
-                                  ? Icons.keyboard_arrow_up
-                                  : Icons.keyboard_arrow_down,
-                              size: 16,
-                              color: _muted,
+                          if (_restaurants.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.all(24),
+                              child: Text('추천 장소가 없어요. 조건을 바꿔 다시 시도해주세요.'),
                             ),
-                            label: Text(
-                              _showMore ? '접기' : '더보기',
-                              style: const TextStyle(
-                                fontSize: 12,
+                          if (_restaurants.length > 3)
+                            TextButton.icon(
+                              onPressed: () =>
+                                  setState(() => _showMore = !_showMore),
+                              icon: Icon(
+                                _showMore
+                                    ? Icons.keyboard_arrow_up
+                                    : Icons.keyboard_arrow_down,
+                                size: 16,
                                 color: _muted,
                               ),
+                              label: Text(
+                                _showMore ? '접기' : '더보기',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: _muted,
+                                ),
+                              ),
                             ),
-                          ),
                           const SizedBox(height: 8),
                         ],
                       ),
@@ -104,10 +108,11 @@ class _RestaurantRecommendationScreenState
           padding: const EdgeInsets.fromLTRB(20, 12, 0, 2),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Image.asset(
-              'assets/screens/3-1/date,time.png',
-              width: constraints.maxWidth * .54,
-              fit: BoxFit.fitWidth,
+            child: Text(
+              widget.result.centerName.isEmpty
+                  ? '추천 장소'
+                  : '${widget.result.centerName} 주변',
+              style: const TextStyle(fontSize: 13, color: _ink),
             ),
           ),
         ),
@@ -125,15 +130,35 @@ class _RestaurantRecommendationScreenState
             children: [
               const Text(
                 '이런 장소 어때요?',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _ink, height: 1.3),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: _ink,
+                  height: 1.3,
+                ),
               ),
               const SizedBox(height: 3),
-              const Text('만나미가 추천하는 만남의 장소예요', style: TextStyle(fontSize: 10, color: _muted)),
+              Text(
+                widget.result.groupSummary.isEmpty
+                    ? '만나미가 추천하는 만남의 장소예요'
+                    : widget.result.groupSummary,
+                style: const TextStyle(fontSize: 10, color: _muted),
+              ),
+              if (widget.result.fallback)
+                const Text(
+                  '조건과 거리를 기준으로 추천했어요.',
+                  style: TextStyle(fontSize: 10, color: _muted),
+                ),
             ],
           ),
         ),
         const SizedBox(width: 8),
-        Image.asset('assets/screens/3-1/mannami.png', width: 42, height: 42, fit: BoxFit.contain),
+        Image.asset(
+          'assets/screens/3-1/mannami.png',
+          width: 42,
+          height: 42,
+          fit: BoxFit.contain,
+        ),
       ],
     ),
   );
@@ -142,9 +167,11 @@ class _RestaurantRecommendationScreenState
     final item = _restaurants[index];
     const colors = [Color(0xFFD08A00), Color(0xFF8A8A8A), Color(0xFF8E4B35)];
     return InkWell(
-      onTap: () => Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => const Screen3_2())),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => RecommendationDetailScreen(recommendation: item),
+        ),
+      ),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         height: 98,
@@ -172,7 +199,7 @@ class _RestaurantRecommendationScreenState
                           shape: BoxShape.circle,
                         ),
                         child: Text(
-                          '${index + 1}',
+                          '${item.rank}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
@@ -183,7 +210,7 @@ class _RestaurantRecommendationScreenState
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          item.$1,
+                          item.name,
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -195,7 +222,7 @@ class _RestaurantRecommendationScreenState
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    item.$2,
+                    item.address,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -206,7 +233,8 @@ class _RestaurantRecommendationScreenState
                   const SizedBox(height: 7),
                   Wrap(
                     spacing: 4,
-                    children: [item.$3, item.$4, item.$5]
+                    children: item.tags
+                        .take(3)
                         .map(
                           (tag) => Container(
                             padding: const EdgeInsets.symmetric(
@@ -249,20 +277,10 @@ class _RestaurantRecommendationScreenState
                   ],
                 ),
               ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    width: 55,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF3E8D4),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
-                    ),
-                  ),
-                  const Text('🍝', style: TextStyle(fontSize: 34)),
-                ],
+              child: const Icon(
+                Icons.location_on,
+                color: Colors.white,
+                size: 36,
               ),
             ),
           ],
@@ -274,6 +292,9 @@ class _RestaurantRecommendationScreenState
   Widget _bottomNavigation() => SizedBox(
     height: 62,
     width: double.infinity,
-    child: Image.asset('assets/screens/2-1-1/underbar.png', fit: BoxFit.contain),
+    child: Image.asset(
+      'assets/screens/2-1-1/underbar.png',
+      fit: BoxFit.contain,
+    ),
   );
 }

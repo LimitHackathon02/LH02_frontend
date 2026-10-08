@@ -2,12 +2,12 @@
 class AppConfig {
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://127.0.0.1:8081',
+    defaultValue: 'http://127.0.0.1:8000',
   );
 
   /// Can be set with --dart-define=API_RECOMMENDATION_PATH=/your/route.
   static const String recommendationPath = String.fromEnvironment(
     'API_RECOMMENDATION_PATH',
-    defaultValue: '/',
+    defaultValue: '/api/recommend/quick',
   );
 }

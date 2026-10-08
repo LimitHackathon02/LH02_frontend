@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Step2Answers {
-  // 2-1-1 → Dep_loc, 2-1-2 → lik_text, 2-1-3 → dis_text.
+  // 세 화면의 답변을 빠른 추천 API의 자연어 text로 합칩니다.
   String depLoc = '';
   String likeText = '';
   String disText = '';
@@ -12,10 +12,13 @@ class Step2Answers {
     _ => disText,
   };
 
-  Map<String, String> toPersonJson({String likeField = 'lik_text'}) => {
-    'Dep_loc': depLoc,
-    likeField: likeText,
-    'dis_text': disText,
+  Map<String, String> toPersonJson({String name = '나'}) => {
+    'name': name,
+    'text': [
+      if (depLoc.trim().isNotEmpty) '${depLoc.trim()}에서 출발해요.',
+      if (likeText.trim().isNotEmpty) '원하는 약속: ${likeText.trim()}.',
+      if (disText.trim().isNotEmpty) '피하고 싶은 약속: ${disText.trim()}.',
+    ].join('\n'),
   };
 
   static Map<String, Object> toRequestJson(Iterable<Step2Answers> people) => {
@@ -304,4 +307,3 @@ class _Step2QuestionPageState extends State<Step2QuestionPage> {
     ),
   );
 }
-
