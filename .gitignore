@@ -147,3 +147,23 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Flutter / Dart generated files and local IDE settings
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+*.iml
+.idea/
+
+# Local private configuration (never put backend API keys in the frontend)
+/secrets/
+/config/*.local.json
+/config/*.local.yaml
+*.keystore
+*.jks
+
+# Application dependency lockfile is shared by the team
+!/pubspec.lock
