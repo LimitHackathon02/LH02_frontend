@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/date_select_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -6,7 +7,6 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
@@ -18,82 +18,57 @@ class MyApp extends StatelessWidget {
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFD25F),
-      body: SafeArea(
-        child: Center(
-          child: SizedBox(
-            width: double.infinity,
-            height: 430,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // 흰색 광 이미지
-                Positioned(
-                  top: 0,
-                  child: Image.asset(
-                    'assets/images/text.png',
-                    width: 340,
-                    height: 280,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-
-                // 별 캐릭터 이미지
-                Positioned(
-                  top: 35,
-                  child: Image.asset(
-                    'assets/images/star.png',
-                    width: 165,
-                    height: 165,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-
-                // 안내 문구
-                Positioned(
-                  top: 230,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 25,
-                      vertical: 11,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFFDF0),
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(
-                        color: const Color(0xFFD8C69B),
-                        width: 0.8,
-                      ),
-                    ),
-                    child: const Text(
-                      '시간부터 장소까지, 한 번에 정해요',
-                      style: TextStyle(
-                        fontFamily: 'Pretendard',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF666666),
-                      ),
+      backgroundColor: Colors.white,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // 원본 이미지 비율: 372 x 811
+          const imageWidth = 372.0;
+          const imageHeight = 811.0;
+          final screenWidth = constraints.maxWidth;
+          final screenHeight = constraints.maxHeight;
+          // 이미지가 화면을 꽉 채우도록 크기 계산
+          final scale = screenWidth / imageWidth;
+          final displayedHeight = imageHeight * scale;
+          return Center(
+            child: SizedBox(
+              width: screenWidth,
+              height: screenHeight,
+              child: Stack(
+                children: [
+                  // 메인 화면 이미지 전체 표시
+                  Positioned.fill(
+                    child: Image.asset(
+                      'assets/images/mainscreen.png',
+                      fit: BoxFit.fill,
                     ),
                   ),
-                ),
-
-                // 만나미 로고
-                Positioned(
-                  top: 285,
-                  child: Image.asset(
-                    'assets/images/mannami.png',
-                    width: 180,
-                    fit: BoxFit.contain,
+                  // 직접 약속 잡기 버튼 터치 영역
+                  Positioned(
+                    left: screenWidth * (23 / imageWidth),
+                    top: screenHeight * (669 / imageHeight),
+                    width: screenWidth * (331 / imageWidth),
+                    height: screenHeight * (44 / imageHeight),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DateSelectScreen(),
+                          ),
+                        );
+                      },
+                      child: Container(color: Colors.transparent),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
