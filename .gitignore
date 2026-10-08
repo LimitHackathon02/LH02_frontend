@@ -157,6 +157,7 @@ vite.config.ts.timestamp-*
 /build/
 *.iml
 .idea/
+.flutter_tool_state
 
 # Local private configuration (never put backend API keys in the frontend)
 /secrets/
