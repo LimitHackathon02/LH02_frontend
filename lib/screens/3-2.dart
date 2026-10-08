@@ -1,9 +1,8 @@
 // ignore_for_file: file_names, camel_case_types
 import 'package:flutter/material.dart';
 
-import 'package:webview_flutter/webview_flutter.dart';
-
 import '../models/quick_recommendation.dart';
+import '../widgets/place_map.dart';
 
 class Screen3_2 extends StatelessWidget {
   const Screen3_2({this.recommendation, super.key});
@@ -48,7 +47,7 @@ class Screen3_2 extends StatelessWidget {
           ),
           Expanded(
             flex: 5,
-            child: _MapArea(url: recommendation?.url ?? ''),
+            child: PlaceMap(place: recommendation),
           ),
           _PlaceSummary(recommendation: recommendation),
           Expanded(flex: 3, child: _TravelTime(recommendation: recommendation)),
@@ -56,37 +55,6 @@ class Screen3_2 extends StatelessWidget {
       ),
     ),
   );
-}
-
-class _MapArea extends StatefulWidget {
-  const _MapArea({required this.url});
-
-  final String url;
-
-  @override
-  State<_MapArea> createState() => _MapAreaState();
-}
-
-class _MapAreaState extends State<_MapArea> {
-  WebViewController? _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    final uri = Uri.tryParse(widget.url);
-    if (uri != null &&
-        (uri.scheme == 'https' || uri.scheme == 'http') &&
-        uri.host.isNotEmpty) {
-      _controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..loadRequest(uri);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) => _controller == null
-      ? const CustomPaint(painter: _MapPainter())
-      : WebViewWidget(controller: _controller!);
 }
 
 class _PlaceSummary extends StatelessWidget {
@@ -306,203 +274,4 @@ class _TravelCard extends StatelessWidget {
       ],
     ),
   );
-}
-
-class _MapPainter extends CustomPainter {
-  const _MapPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.drawColor(const Color(0xFFF4F1EA), BlendMode.src);
-    final blockColors = [
-      const Color(0xFFFDFBF6),
-      const Color(0xFFFFFDF8),
-      const Color(0xFFEAF0E4),
-      const Color(0xFFF5EBDD),
-    ];
-    final random = _FixedRandom(13);
-    const columns = 7;
-    const rows = 9;
-    final cellW = size.width / columns;
-    final cellH = size.height / rows;
-    for (var row = 0; row < rows; row++) {
-      for (var col = 0; col < columns; col++) {
-        final insetX = 3 + random.nextInt(5).toDouble();
-        final insetY = 3 + random.nextInt(5).toDouble();
-        final rect = Rect.fromLTWH(
-          col * cellW + insetX,
-          row * cellH + insetY,
-          cellW - insetX - 5,
-          cellH - insetY - 5,
-        );
-        final paint = Paint()
-          ..color = blockColors[random.nextInt(blockColors.length)];
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(rect, const Radius.circular(2)),
-          paint,
-        );
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(rect, const Radius.circular(2)),
-          Paint()
-            ..color = const Color(0xFFE5E0D6)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = .7,
-        );
-      }
-    }
-    final minorRoad = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 3.2
-      ..style = PaintingStyle.stroke;
-    final roadEdge = Paint()
-      ..color = const Color(0xFFE1DDD5)
-      ..strokeWidth = 4.8
-      ..style = PaintingStyle.stroke;
-    for (var row = 1; row < rows; row++) {
-      final y = row * cellH;
-      final path = Path()
-        ..moveTo(0, y + (row.isEven ? -4 : 4))
-        ..lineTo(size.width, y + (row.isEven ? 5 : -3));
-      canvas.drawPath(path, roadEdge);
-      canvas.drawPath(path, minorRoad);
-    }
-    for (var col = 1; col < columns; col++) {
-      final x = col * cellW;
-      final path = Path()
-        ..moveTo(x - 3, 0)
-        ..lineTo(x + 5, size.height);
-      canvas.drawPath(path, roadEdge);
-      canvas.drawPath(path, minorRoad);
-    }
-    final route = Path()
-      ..moveTo(-10, size.height * .68)
-      ..lineTo(size.width * .35, size.height * .56)
-      ..lineTo(size.width * .64, size.height * .48)
-      ..lineTo(size.width + 10, size.height * .34);
-    canvas.drawPath(
-      route,
-      Paint()
-        ..color = Colors.white
-        ..strokeWidth = 13
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round,
-    );
-    canvas.drawPath(
-      route,
-      Paint()
-        ..color = const Color(0xFF6EB8E8)
-        ..strokeWidth = 7
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round,
-    );
-    _label(
-      canvas,
-      '노원역',
-      Offset(size.width * .45, size.height * .51),
-      size: 10,
-      bold: true,
-      color: const Color(0xFF31465A),
-    );
-    _label(
-      canvas,
-      '노원 문화의 거리',
-      Offset(size.width * .11, size.height * .22),
-      size: 8,
-    );
-    _label(
-      canvas,
-      '롯데백화점',
-      Offset(size.width * .69, size.height * .16),
-      size: 8,
-    );
-    _label(
-      canvas,
-      '노원구청',
-      Offset(size.width * .65, size.height * .75),
-      size: 8,
-    );
-    _label(
-      canvas,
-      '상계역 방면',
-      Offset(size.width * .16, size.height * .85),
-      size: 7,
-      color: const Color(0xFF6989A0),
-    );
-    final placeLabels = [
-      ('엔제리너스', .08, .13), ('아웃백', .25, .08), ('메가커피', .44, .13),
-      ('올리브영', .72, .12), ('롯데시네마', .83, .28), ('노원문고', .12, .37),
-      ('다이소', .25, .67), ('스타벅스', .42, .75), ('약국', .77, .80),
-      ('분식집', .62, .21), ('노원문화의거리', .11, .90), ('식당', .36, .30),
-      ('카페', .57, .37), ('은행', .90, .57), ('버스정류장', .16, .55),
-    ];
-    for (final (name, x, y) in placeLabels) {
-      _label(canvas, name, Offset(size.width * x, size.height * y), size: 6.5, color: const Color(0xFFB17A66));
-    }
-    final points = [
-      Offset(size.width * .2, size.height * .39),
-      Offset(size.width * .78, size.height * .58),
-      Offset(size.width * .34, size.height * .82),
-      Offset(size.width * .84, size.height * .2),
-      Offset(size.width * .57, size.height * .29),
-    ];
-    for (var i = 0; i < points.length; i++) {
-      canvas.drawCircle(
-        points[i],
-        5,
-        Paint()
-          ..color = i == 1 ? const Color(0xFFE66E57) : const Color(0xFFF0A353),
-      );
-      canvas.drawCircle(points[i], 2, Paint()..color = Colors.white);
-    }
-    _label(
-      canvas,
-      '카페',
-      points[0] + const Offset(7, -7),
-      size: 7,
-      color: const Color(0xFFB65D40),
-    );
-    _label(
-      canvas,
-      '음식점',
-      points[2] + const Offset(7, 4),
-      size: 7,
-      color: const Color(0xFFB65D40),
-    );
-  }
-
-  void _label(
-    Canvas canvas,
-    String text,
-    Offset position, {
-    double size = 8,
-    bool bold = false,
-    Color color = const Color(0xFF8A877F),
-  }) {
-    final painter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: TextStyle(
-          fontSize: size,
-          fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
-          color: color,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    painter.paint(canvas, position);
-  }
-
-  @override
-  bool shouldRepaint(covariant _MapPainter oldDelegate) => false;
-}
-
-class _FixedRandom {
-  _FixedRandom(this._state);
-  int _state;
-  int nextInt(int max) {
-    _state = (_state * 1103515245 + 12345) & 0x7fffffff;
-    return _state % max;
-  }
 }

@@ -103,6 +103,8 @@ flutter devices
 
 ### 시뮬레이터 빌드 / 실행
 
+추천 장소의 마지막 상세 페이지는 백엔드 응답의 `place.lat`, `place.lng`로 iOS 기본 지도(MapKit)를 바로 표시합니다. 선택한 장소에 핀을 표시하며 지도를 이동하거나 확대할 수 있습니다. 별도의 지도 API 키나 현재 위치 권한은 필요하지 않습니다. 좌표가 없는 응답은 위치 정보 안내를 표시합니다.
+
 ```bash
 ./scripts/ios.sh simulator
 ./scripts/ios.sh run <flutter_devices에_표시된_iOS_DEVICE_ID>

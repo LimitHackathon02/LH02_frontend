@@ -15,7 +15,14 @@ final recommendationJson = {
     {
       'rank': 1,
       'score': 85,
-      'place': {'name': '서버 추천 식당', 'address': '서울 노원구', 'category': '음식점>양식'},
+      'place': {
+        'name': '서버 추천 식당',
+        'address': '서울 노원구',
+        'category': '음식점>양식',
+        'lat': 37.6575116,
+        'lng': 127.0617088,
+        'url': 'https://www.instagram.com/restaurant',
+      },
       'reason': '입력한 조건과 가까워요.',
       'matched': ['조용한'],
       'warnings': ['영업시간을 확인해주세요.'],

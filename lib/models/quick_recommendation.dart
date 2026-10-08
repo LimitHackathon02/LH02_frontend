@@ -10,6 +10,8 @@ class QuickRecommendation {
     required this.matched,
     this.travelText = const [],
     this.score,
+    this.latitude,
+    this.longitude,
   });
 
   final String name;
@@ -20,6 +22,16 @@ class QuickRecommendation {
   final List<String> matched;
   final List<String> travelText;
   final double? score;
+  final double? latitude;
+  final double? longitude;
+
+  bool get hasCoordinates =>
+      latitude != null &&
+      longitude != null &&
+      latitude!.isFinite &&
+      longitude!.isFinite &&
+      latitude!.abs() <= 90 &&
+      longitude!.abs() <= 180;
 
   String travelMinutesFor(String member) {
     for (final text in travelText) {
@@ -52,6 +64,8 @@ class QuickRecommendation {
       address: _string(place['address']),
       category: _string(place['category']),
       url: _string(place['url']),
+      latitude: _coordinate(place['lat']),
+      longitude: _coordinate(place['lng']),
       score: scoreValue is num
           ? scoreValue.toDouble()
           : double.tryParse(scoreValue?.toString() ?? ''),
@@ -63,14 +77,22 @@ class QuickRecommendation {
 
   static List<QuickRecommendation> parseResponse(String body) {
     final decoded = jsonDecode(body);
-    if (decoded is! Map<String, dynamic> || decoded['recommendations'] is! List) {
+    if (decoded is! Map<String, dynamic> ||
+        decoded['recommendations'] is! List) {
       throw const FormatException('응답에 recommendations 배열이 없습니다.');
     }
     return (decoded['recommendations'] as List)
         .whereType<Map>()
-        .map((item) => QuickRecommendation.fromJson(Map<String, dynamic>.from(item)))
+        .map(
+          (item) =>
+              QuickRecommendation.fromJson(Map<String, dynamic>.from(item)),
+        )
         .toList();
   }
 
   static String _string(Object? value) => value?.toString() ?? '';
+
+  static double? _coordinate(Object? value) => value is num
+      ? value.toDouble()
+      : double.tryParse(value?.toString() ?? '');
 }

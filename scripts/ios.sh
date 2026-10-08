@@ -35,6 +35,23 @@ fi
 defines=("--dart-define=API_BASE_URL=$api_base_url" "--dart-define=API_RECOMMENDATION_PATH=${API_RECOMMENDATION_PATH:-/api/recommend/quick}")
 
 flutter pub get
+# pub get이 생성한 Swift 패키지의 기본 iOS 13 설정은 일부 플러그인과
+# 충돌하여 Xcode 빌드 설정 조회부터 실패합니다. 프로젝트 버전을 먼저 반영합니다.
+python3 - <<'PY'
+from pathlib import Path
+import re
+
+manifest = Path('ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage/Package.swift')
+if manifest.exists():
+    project = Path('ios/Runner.xcodeproj/project.pbxproj').read_text()
+    content = manifest.read_text()
+    versions = re.findall(r'IPHONEOS_DEPLOYMENT_TARGET = ([\d.]+);', project)
+    versions += re.findall(r'\.iOS\("([\d.]+)"\)', content)
+    minimum = max(versions, key=lambda value: tuple(map(int, value.split('.'))))
+    updated = re.sub(r'\.iOS\("[\d.]+"\)', f'.iOS("{minimum}")', content)
+    if updated != content:
+        manifest.write_text(updated)
+PY
 # 플러그인 의존성을 생성한 뒤 변경된 최소 iOS 버전을 반영합니다.
 flutter build ios --config-only --debug --no-codesign --no-pub "${defines[@]}"
 case "$mode" in
