@@ -6,7 +6,7 @@ class DateSelectScreen extends StatefulWidget {
   State<DateSelectScreen> createState() => _DateSelectScreenState();
 }
 class _DateSelectScreenState extends State<DateSelectScreen> {
-  DateTime displayedMonth = DateTime(2026, 9);
+  DateTime displayedMonth = DateTime.now();
   DateTime? startDate;
   DateTime? endDate;
   final Color yellow = const Color(0xFFFFE3A0);

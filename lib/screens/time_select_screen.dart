@@ -23,7 +23,8 @@ class _TimeSelectScreenState extends State<TimeSelectScreen> {
   String formatHour(double value) {
     final hour = value.floor() % 24;
     final minute = ((value - value.floor()) * 60).round();
-    return '$hour:${minute.toString().padLeft(2, '0')}';
+    final displayHour = hour % 12 == 0 ? 12 : hour % 12;
+    return '$displayHour:${minute.toString().padLeft(2, '0')}';
   }
 
   double hourFromPosition(Offset point, Size size) {
@@ -221,7 +222,23 @@ class _TimeSelectScreenState extends State<TimeSelectScreen> {
                   height: 30,
                   child: ElevatedButton(
                     onPressed: () {
-                      // TODO: 다음 화면 연결
+                      showDialog<void>(
+                        context: context,
+                        builder: (dialogContext) => AlertDialog(
+                          title: const Text('일정 선택 완료'),
+                          content: Text(
+                            '${widget.startDate.year}년 ${widget.startDate.month}월 ${widget.startDate.day}일'
+                            '${widget.endDate != widget.startDate ? ' - ${widget.endDate.month}월 ${widget.endDate.day}일' : ''}\n'
+                            '${formatHour(startHour)} - ${formatHour(endHour)}',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              child: const Text('확인'),
+                            ),
+                          ],
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFFF2BD),

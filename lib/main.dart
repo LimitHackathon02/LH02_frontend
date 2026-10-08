@@ -29,9 +29,6 @@ class MainScreen extends StatelessWidget {
           const imageHeight = 811.0;
           final screenWidth = constraints.maxWidth;
           final screenHeight = constraints.maxHeight;
-          // 이미지가 화면을 꽉 채우도록 크기 계산
-          final scale = screenWidth / imageWidth;
-          final displayedHeight = imageHeight * scale;
           return Center(
             child: SizedBox(
               width: screenWidth,
