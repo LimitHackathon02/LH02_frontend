@@ -20,6 +20,11 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  assets:
+    - assets/images/mannami.png
+    - assets/images/star.png
+    - assets/images/text.png
+
   fonts:
     - family: Pretendard
       fonts:
