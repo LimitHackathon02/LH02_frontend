@@ -4,4 +4,10 @@ class AppConfig {
     'API_BASE_URL',
     defaultValue: 'http://127.0.0.1:8081',
   );
+
+  /// 백엔드의 실제 상태 확인 경로에 맞춰 실행/빌드 시 변경할 수 있습니다.
+  static const String healthCheckPath = String.fromEnvironment(
+    'HEALTH_CHECK_PATH',
+    defaultValue: '/health',
+  );
 }
