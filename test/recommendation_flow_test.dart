@@ -95,6 +95,20 @@ void main() {
         'address': '서울 노원구',
       });
       expect(find.text('서울 노원구'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('travel-time-1')),
+          matching: find.text('12분'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('travel-time-2')),
+          matching: find.text('27분'),
+        ),
+        findsOneWidget,
+      );
     },
     variant: TargetPlatformVariant.only(TargetPlatform.iOS),
   );

@@ -9,6 +9,7 @@ class QuickRecommendation {
     required this.reason,
     required this.matched,
     this.travelText = const [],
+    this.travelMinutesByMember = const {},
     this.score,
     this.latitude,
     this.longitude,
@@ -21,6 +22,7 @@ class QuickRecommendation {
   final String reason;
   final List<String> matched;
   final List<String> travelText;
+  final Map<String, int> travelMinutesByMember;
   final double? score;
   final double? latitude;
   final double? longitude;
@@ -33,13 +35,39 @@ class QuickRecommendation {
       latitude!.abs() <= 90 &&
       longitude!.abs() <= 180;
 
-  String travelMinutesFor(String member) {
+  List<String> get travelMembers {
+    final members = travelMinutesByMember.keys.toSet();
     for (final text in travelText) {
-      if (!text.contains("($member)")) continue;
-      final match = RegExp(r"자동차\s*약\s*(\d+)\s*분").firstMatch(text);
-      if (match != null) return "${match.group(1)}분";
+      for (final line in text.split(RegExp(r'[\r\n]+'))) {
+        final name = RegExp(
+          r'\(\s*([^()]+?)\s*\)',
+        ).firstMatch(line)?.group(1)?.trim();
+        if (name != null &&
+            name.isNotEmpty &&
+            travelMinutesValueFor(name) != null) {
+          members.add(name);
+        }
+      }
     }
-    return "정보 없음";
+    return members.toList();
+  }
+
+  int? travelMinutesValueFor(String member) {
+    final memberPattern = RegExp(r'\(\s*' + RegExp.escape(member) + r'\s*\)');
+    final minutesPattern = RegExp(r'자동차\s*약\s*(\d+)\s*분');
+    for (final text in travelText) {
+      for (final line in text.split(RegExp(r'[\r\n]+'))) {
+        if (!memberPattern.hasMatch(line)) continue;
+        final match = minutesPattern.firstMatch(line);
+        if (match != null) return int.tryParse(match.group(1)!);
+      }
+    }
+    return travelMinutesByMember[member];
+  }
+
+  String travelMinutesFor(String member) {
+    final minutes = travelMinutesValueFor(member);
+    return minutes == null ? '정보 없음' : '$minutes분';
   }
 
   factory QuickRecommendation.fromJson(Map<String, dynamic> json) {
@@ -49,10 +77,26 @@ class QuickRecommendation {
         : const <String, dynamic>{};
     final scoreValue = json['score'];
     final matchedValue = json['matched'];
-    final travelTextValue = json['travel_text'];
+    final travelTextValue = json['travel_text'] ?? json['tavel_text'];
     final travelText = travelTextValue is List
         ? travelTextValue.map((value) => value.toString()).toList()
+        : travelTextValue is String
+        ? <String>[travelTextValue]
         : <String>[];
+    final travelMinutesByMember = <String, int>{};
+    final travelValue = json['travel'];
+    if (travelValue is List) {
+      for (final entry in travelValue.whereType<Map>()) {
+        final member = _string(entry['member']).trim();
+        final minutes = _coordinate(entry['est_minutes']);
+        if (member.isNotEmpty &&
+            minutes != null &&
+            minutes.isFinite &&
+            minutes >= 0) {
+          travelMinutesByMember[member] = minutes.round();
+        }
+      }
+    }
     final matched = matchedValue is List
         ? matchedValue.map((value) => value.toString()).toList()
         : matchedValue is String && matchedValue.isNotEmpty
@@ -72,6 +116,7 @@ class QuickRecommendation {
       reason: _string(json['reason']),
       matched: matched,
       travelText: travelText,
+      travelMinutesByMember: Map.unmodifiable(travelMinutesByMember),
     );
   }
 

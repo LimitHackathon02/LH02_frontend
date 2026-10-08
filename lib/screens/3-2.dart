@@ -175,53 +175,77 @@ class _TravelTime extends StatelessWidget {
   final QuickRecommendation? recommendation;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(28, 18, 20, 14),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              '걸리는 시간을 확인해요.',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF33211D),
-              ),
-            ),
-            Text(
-              '평균 시간 15분',
-              style: TextStyle(fontSize: 8, color: Colors.grey.shade500),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-        Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) {
+    final item = recommendation;
+    final members = item?.travelMembers ?? const <String>[];
+    final cards = <int, String>{};
+    if (members.contains('보경') || members.contains('지민')) {
+      if (members.contains('보경')) cards[1] = '보경';
+      if (members.contains('지민')) cards[2] = '지민';
+    } else {
+      for (var i = 0; i < members.length && i < 2; i++) {
+        cards[i + 1] = members[i];
+      }
+    }
+    final minutes = cards.values
+        .map((member) => item?.travelMinutesValueFor(member))
+        .whereType<int>()
+        .toList();
+    final average = minutes.isEmpty
+        ? null
+        : (minutes.reduce((sum, value) => sum + value) / minutes.length)
+              .round();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 18, 20, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _TravelCard(
-                label: '1',
-                time: recommendation?.travelMinutesFor('보경') ?? '정보 없음',
+              const Text(
+                '걸리는 시간을 확인해요.',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF33211D),
+                ),
               ),
-              const SizedBox(width: 30),
-              _TravelCard(
-                label: '2',
-                time: recommendation?.travelMinutesFor('지민') ?? '정보 없음',
-              ),
+              if (average != null)
+                Text(
+                  '평균 시간 $average분',
+                  style: TextStyle(fontSize: 8, color: Colors.grey.shade500),
+                ),
             ],
           ),
-        ),
-      ],
-    ),
-  );
+          const SizedBox(height: 14),
+          Expanded(
+            child: cards.isEmpty
+                ? const Center(child: Text('이동 시간을 아직 계산하지 못했어요.'))
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (final card in cards.entries) ...[
+                        if (card.key != cards.keys.first)
+                          const SizedBox(width: 30),
+                        _TravelCard(
+                          key: ValueKey('travel-time-${card.key}'),
+                          label: '${card.key}',
+                          time: item!.travelMinutesFor(card.value),
+                        ),
+                      ],
+                    ],
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _TravelCard extends StatelessWidget {
-  const _TravelCard({required this.label, required this.time});
+  const _TravelCard({required this.label, required this.time, super.key});
 
   final String label;
   final String time;

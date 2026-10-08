@@ -29,6 +29,10 @@ final recommendationJson = {
       'travel': [
         {'member': '나', 'distance_km': 1.2, 'est_minutes': 14},
       ],
+      'tavel_text': [
+        '출발지(지민) → 서버 추천 식당 - 자동차 약 27분',
+        '출발지(보경) → 서버 추천 식당 - 자동차 약 12분',
+      ],
     },
   ],
 };
