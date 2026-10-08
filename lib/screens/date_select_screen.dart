@@ -17,6 +17,7 @@ class _DateSelectScreenState extends State<DateSelectScreen> {
         startDate = date;
         endDate = null;
       } else {
+        
         endDate = date;
       }
     });

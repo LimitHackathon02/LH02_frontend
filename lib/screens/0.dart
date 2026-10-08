@@ -1,7 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
-import '2-1-1.dart';
+import 'date_select_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -67,7 +67,7 @@ class WelcomeScreen extends StatelessWidget {
 }
 
 void _openQuestions(BuildContext context) {
-  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const Screen2_1_1()));
+  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DateSelectScreen()));
 }
 
 class _LargeStarPainter extends CustomPainter {

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '2-1-1.dart';
 
 class TimeSelectScreen extends StatefulWidget {
   final DateTime startDate;
@@ -222,22 +223,8 @@ class _TimeSelectScreenState extends State<TimeSelectScreen> {
                   height: 30,
                   child: ElevatedButton(
                     onPressed: () {
-                      showDialog<void>(
-                        context: context,
-                        builder: (dialogContext) => AlertDialog(
-                          title: const Text('일정 선택 완료'),
-                          content: Text(
-                            '${widget.startDate.year}년 ${widget.startDate.month}월 ${widget.startDate.day}일'
-                            '${widget.endDate != widget.startDate ? ' - ${widget.endDate.month}월 ${widget.endDate.day}일' : ''}\n'
-                            '${formatHour(startHour)} - ${formatHour(endHour)}',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(dialogContext),
-                              child: const Text('확인'),
-                            ),
-                          ],
-                        ),
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const Screen2_1_1()),
                       );
                     },
                     style: ElevatedButton.styleFrom(
