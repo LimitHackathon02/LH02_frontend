@@ -1,9 +1,9 @@
 # LH02_frontend
 LH02 해커톤 공통 프론트엔드 — 이미지·텍스트 입력, 지도 API, AI 분석 결과 화면
 
-## 팀 공통 실행 환경
+## 팀 공통 기본 실행 환경
 
-시작 화면에서 출발 장소·선호·비선호를 입력하고 백엔드 추천 결과를 확인하는 Flutter 앱입니다.
+현재 앱은 2-1-1부터 2-1-3까지 입력한 한 사람의 출발 위치, 선호, 비선호를 빠른 장소 추천 API로 전송합니다.
 
 ### Flutter 버전과 설치 확인
 
@@ -33,7 +33,7 @@ flutter pub get
 flutter run -d chrome --web-port 5173 --dart-define=API_BASE_URL=http://127.0.0.1:8000
 ```
 
-브라우저에서 시작 화면을 확인합니다. 터미널에서 `q`를 누르면 실행이 종료됩니다. 앱 프로젝트의 `pubspec.lock`은 팀의 의존성 버전을 공유하기 위해 Git에 포함합니다.
+브라우저에서 기본 문구를 확인합니다. 터미널에서 `q`를 누르면 실행이 종료됩니다. 앱 프로젝트의 `pubspec.lock`은 팀의 의존성 버전을 공유하기 위해 Git에 포함합니다.
 
 ### 분석, 테스트, 웹 빌드
 
@@ -45,9 +45,11 @@ flutter build web
 
 웹 빌드 결과는 `build\web`에 생성되며 Git에 포함하지 않습니다.
 
+추천 요청 이름은 `AppConfig.memberName`이며 기본값은 `사용자`입니다. 실행 시 `--dart-define=MEMBER_NAME=지민`처럼 지정할 수 있습니다.
+
 ### 백엔드 주소 설정
 
-백엔드는 별도로 실행해야 합니다. `lib/config/app_config.dart`의 `AppConfig.apiBaseUrl`은 `String.fromEnvironment`로 `API_BASE_URL`을 읽으며 기본값은 `http://127.0.0.1:8000`입니다. 세 질문에 답한 뒤 `POST /api/recommend/quick`으로 추천을 요청합니다.
+백엔드는 별도로 실행해야 합니다. `lib/config/app_config.dart`의 `AppConfig.apiBaseUrl`은 `String.fromEnvironment`로 `API_BASE_URL`을 읽으며 기본값은 `http://127.0.0.1:8000`입니다. 2-1-3에서 다음을 누르면 `POST /api/recommend/quick`을 호출합니다. Android 에뮬레이터에서는 127.0.0.1을 10.0.2.2로 자동 변환합니다.
 
 `127.0.0.1`은 앱을 실행하는 컴퓨터 자신을 가리킵니다. 팀원의 백엔드를 연결하려면 해당 팀원 PC의 접근 가능한 IP와 포트를 사용합니다. 예를 들어:
 

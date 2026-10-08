@@ -1,8 +1,14 @@
 // ignore_for_file: file_names, camel_case_types
 import 'package:flutter/material.dart';
 
+import 'package:webview_flutter/webview_flutter.dart';
+
+import '../models/quick_recommendation.dart';
+
 class Screen3_2 extends StatelessWidget {
-  const Screen3_2({super.key});
+  const Screen3_2({this.recommendation, super.key});
+
+  final QuickRecommendation? recommendation;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -33,7 +39,7 @@ class Screen3_2 extends StatelessWidget {
                     icon: const Icon(
                       Icons.arrow_back_ios_new,
                       size: 17,
-                      color: Color(0xFF999999),
+                      color: Color(0xFF1683F5),
                     ),
                   ),
                 ),
@@ -42,119 +48,61 @@ class Screen3_2 extends StatelessWidget {
           ),
           Expanded(
             flex: 5,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                const CustomPaint(painter: _MapPainter()),
-                Positioned(
-                  left: MediaQuery.sizeOf(context).width * .48,
-                  top: MediaQuery.sizeOf(context).height * .18,
-                  child: const Icon(
-                    Icons.location_on,
-                    size: 34,
-                    color: Color(0xFFE9694F),
-                  ),
-                ),
-                Positioned(
-                  right: 12,
-                  bottom: 14,
-                  child: Column(
-                    children: [
-                      _mapButton(Icons.add),
-                      const SizedBox(height: 4),
-                      _mapButton(Icons.remove),
-                    ],
-                  ),
-                ),
-                const Positioned(
-                  left: 8,
-                  bottom: 8,
-                  child: Text(
-                    '지도 데이터 · 현재 위치 기준',
-                    style: TextStyle(fontSize: 8, color: Color(0xFF888888)),
-                  ),
-                ),
-              ],
-            ),
+            child: _MapArea(url: recommendation?.url ?? ''),
           ),
-          const _PlaceSummary(),
-          const Expanded(flex: 2, child: _TravelTime()),
-          _bottomNavigation(),
+          _PlaceSummary(recommendation: recommendation),
+          Expanded(flex: 3, child: _TravelTime(recommendation: recommendation)),
         ],
       ),
     ),
   );
+}
 
-  static Widget _mapButton(IconData icon) => Container(
-    width: 28,
-    height: 28,
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(5),
-      boxShadow: const [BoxShadow(color: Color(0x22000000), blurRadius: 3)],
-    ),
-    child: Icon(icon, size: 18, color: const Color(0xFF777777)),
-  );
+class _MapArea extends StatefulWidget {
+  const _MapArea({required this.url});
 
-  Widget _bottomNavigation() {
-    const labels = ['홈', '맵', '채팅', '프로필'];
-    const icons = [
-      Icons.home_outlined,
-      Icons.location_on,
-      Icons.chat_bubble_outline,
-      Icons.person,
-    ];
-    return Container(
-      height: 62,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: const Border(top: BorderSide(color: Color(0xFFE7E7E7))),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: .05),
-            blurRadius: 7,
-            offset: const Offset(0, -3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: List.generate(
-          labels.length,
-          (index) => Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icons[index],
-                  size: 20,
-                  color: index == 1
-                      ? const Color(0xFF777777)
-                      : const Color(0xFFB2B4BA),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  labels[index],
-                  style: TextStyle(
-                    fontSize: 9,
-                    color: index == 1
-                        ? const Color(0xFF777777)
-                        : const Color(0xFFB2B4BA),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+  final String url;
+
+  @override
+  State<_MapArea> createState() => _MapAreaState();
+}
+
+class _MapAreaState extends State<_MapArea> {
+  WebViewController? _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final uri = Uri.tryParse(widget.url);
+    if (uri != null &&
+        (uri.scheme == 'https' || uri.scheme == 'http') &&
+        uri.host.isNotEmpty) {
+      _controller = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..loadRequest(uri);
+    }
   }
+
+  @override
+  Widget build(BuildContext context) => _controller == null
+      ? const CustomPaint(painter: _MapPainter())
+      : WebViewWidget(controller: _controller!);
 }
 
 class _PlaceSummary extends StatelessWidget {
-  const _PlaceSummary();
+  const _PlaceSummary({this.recommendation});
+
+  final QuickRecommendation? recommendation;
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) {
+    final item = recommendation;
+    final tags = <String>[];
+    if (item != null) {
+      tags.addAll(item.matched.map((tag) => tag.trim()).where((tag) => tag.isNotEmpty));
+    }
+    final visibleTags = tags.toSet().take(3).toList();
+    return Container(
     height: 112,
     padding: const EdgeInsets.fromLTRB(20, 12, 18, 8),
     decoration: const BoxDecoration(
@@ -175,49 +123,47 @@ class _PlaceSummary extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(children: [
-                const Text('졸리앤몰트', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF2B1715))),
-                const SizedBox(width: 7),
-                const Icon(Icons.star, size: 14, color: Color(0xFFE66B5D)),
-                const SizedBox(width: 2),
-                const Text('4.87', style: TextStyle(fontSize: 10, color: Color(0xFF555555))),
+                Expanded(
+                  child: Text(
+                    item?.name.isNotEmpty == true ? item!.name : '졸리앤몰트',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF2B1715)),
+                  ),
+                ),
+                if (item?.score != null) ...[
+                  const Icon(Icons.star, size: 14, color: Color(0xFFE66B5D)),
+                  const SizedBox(width: 2),
+                  Text(item!.score!.toStringAsFixed(2), style: const TextStyle(fontSize: 10, color: Color(0xFF555555))),
+                ],
               ]),
               const SizedBox(height: 4),
-              const Text(
-                '7년만의 재방문에도 변치 않는 맛',
-                style: TextStyle(fontSize: 8, color: Color(0xFF555555)),
+              Text(
+                item?.reason.isNotEmpty == true ? item!.reason : '추천 이유를 확인해 보세요.',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 8, color: Color(0xFF555555)),
               ),
               const SizedBox(height: 2),
-              const Text(
-                '서울 노원구 노해로 88길 20 5층',
-                style: TextStyle(fontSize: 8, color: Color(0xFF777777)),
+              Text(
+                item?.address.isNotEmpty == true ? item!.address : '주소 정보가 없습니다.',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 8, color: Color(0xFF777777)),
               ),
               const SizedBox(height: 5),
               Wrap(
                 spacing: 4,
-                children: ['이탈리안', '차분한', '뷰가 좋은']
-                    .map(
-                      (text) => Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3C5),
-                          border: Border.all(
-                            color: const Color(0xFFE8D68F),
-                            width: .6,
-                          ),
-                          borderRadius: BorderRadius.circular(9),
-                        ),
-                        child: Text(
-                          text,
-                          style: const TextStyle(
-                            fontSize: 7,
-                            color: Color(0xFF806C35),
-                          ),
-                        ),
+                children: (visibleTags.isEmpty ? <String>['추천 장소'] : visibleTags)
+                    .map((text) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF3C5),
+                        border: Border.all(color: const Color(0xFFE8D68F), width: .6),
+                        borderRadius: BorderRadius.circular(9),
                       ),
-                    )
+                      child: Text(text, style: const TextStyle(fontSize: 7, color: Color(0xFF806C35))),
+                    ))
                     .toList(),
               ),
             ],
@@ -252,14 +198,17 @@ class _PlaceSummary extends StatelessWidget {
       ],
     ),
   );
+  }
 }
 
 class _TravelTime extends StatelessWidget {
-  const _TravelTime();
+  const _TravelTime({this.recommendation});
+
+  final QuickRecommendation? recommendation;
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(20, 14, 20, 5),
+    padding: const EdgeInsets.fromLTRB(28, 18, 20, 14),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -269,7 +218,7 @@ class _TravelTime extends StatelessWidget {
             const Text(
               '걸리는 시간을 확인해요.',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF33211D),
               ),
@@ -280,41 +229,20 @@ class _TravelTime extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 18),
-        SizedBox(
-          height: 58,
-          child: Stack(
-            clipBehavior: Clip.none,
+        const SizedBox(height: 14),
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Positioned(
-                left: 12,
-                right: 12,
-                top: 10,
-                child: Container(
-                  height: 2,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE3D4F7),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+              _TravelCard(
+                label: '1',
+                time: recommendation?.travelMinutesFor('보경') ?? '정보 없음',
               ),
-              const Positioned(
-                left: 0,
-                top: 0,
-                child: _TimeStop(
-                  label: '나',
-                  time: '13분',
-                  icon: Icons.directions_walk,
-                ),
-              ),
-              const Positioned(
-                right: 0,
-                top: 27,
-                child: _TimeStop(
-                  label: '1',
-                  time: '57분',
-                  icon: Icons.directions_car_filled,
-                ),
+              const SizedBox(width: 30),
+              _TravelCard(
+                label: '2',
+                time: recommendation?.travelMinutesFor('지민') ?? '정보 없음',
               ),
             ],
           ),
@@ -324,40 +252,56 @@ class _TravelTime extends StatelessWidget {
   );
 }
 
-class _TimeStop extends StatelessWidget {
-  const _TimeStop({
-    required this.label,
-    required this.time,
-    required this.icon,
-  });
+class _TravelCard extends StatelessWidget {
+  const _TravelCard({required this.label, required this.time});
+
   final String label;
   final String time;
-  final IconData icon;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    width: 40,
+  Widget build(BuildContext context) => Container(
+    width: 68,
+    height: 92,
+    decoration: BoxDecoration(
+      color: const Color(0xFFFFFEFC),
+      border: Border.all(color: const Color(0xFFD8D4CF)),
+      borderRadius: BorderRadius.circular(5),
+      boxShadow: const [
+        BoxShadow(color: Color(0x10000000), blurRadius: 3, offset: Offset(0, 2)),
+      ],
+    ),
     child: Column(
       children: [
+        const SizedBox(height: 8),
         Container(
-          width: 20,
-          height: 20,
+          width: 24,
+          height: 24,
           alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: Colors.white,
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFF2C0),
             shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFD2C9E1)),
           ),
           child: Text(
             label,
-            style: const TextStyle(fontSize: 8, color: Color(0xFF555555)),
+            style: const TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF55482A),
+            ),
           ),
         ),
+        const SizedBox(height: 10),
+        const Icon(
+          Icons.directions_car_filled,
+          size: 20,
+          color: Color(0xFF806293),
+        ),
         const SizedBox(height: 2),
-        Icon(icon, size: 15, color: const Color(0xFF777777)),
         Text(
           time,
-          style: const TextStyle(fontSize: 7, color: Color(0xFF555555)),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 8, color: Color(0xFF555555)),
         ),
       ],
     ),

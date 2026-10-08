@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Step2Answers {
-  // 세 화면의 답변을 빠른 추천 API의 자연어 text로 합칩니다.
+  // 2-1 inputs are combined into the QuickReq fields name and text.
   String depLoc = '';
   String likeText = '';
   String disText = '';
@@ -12,17 +12,35 @@ class Step2Answers {
     _ => disText,
   };
 
-  Map<String, String> toPersonJson({String name = '나'}) => {
-    'name': name,
-    'text': [
-      if (depLoc.trim().isNotEmpty) '${depLoc.trim()}에서 출발해요.',
-      if (likeText.trim().isNotEmpty) '원하는 약속: ${likeText.trim()}.',
-      if (disText.trim().isNotEmpty) '피하고 싶은 약속: ${disText.trim()}.',
-    ].join('\n'),
+  Map<String, String> toPersonJson({required String name}) => {
+    'name': name.trim().isEmpty ? '사용자' : name.trim(),
+    'text': _combinedText,
   };
 
-  static Map<String, Object> toRequestJson(Iterable<Step2Answers> people) => {
-    'people': people.map((person) => person.toPersonJson()).toList(),
+  String get _combinedText {
+    final parts = <String>[];
+    final departure = depLoc.trim();
+    if (departure.isNotEmpty) {
+      final departureText = departure.contains('출발')
+          ? departure
+          : '$departure에서 출발해';
+      parts.add(_withEnding(departureText));
+    }
+    if (likeText.trim().isNotEmpty) parts.add(_withEnding(likeText.trim()));
+    if (disText.trim().isNotEmpty) parts.add(_withEnding(disText.trim()));
+    return parts.join(' ');
+  }
+
+  static String _withEnding(String value) {
+    if (RegExp(r'[.!?。！？]$').hasMatch(value)) return value;
+    return '$value.';
+  }
+
+  static Map<String, Object> toRequestJson(
+    Iterable<Step2Answers> people, {
+    required String name,
+  }) => {
+    'people': people.map((person) => person.toPersonJson(name: name)).toList(),
   };
 
   void setValue(int step, String value) {
@@ -67,7 +85,7 @@ class _Step2QuestionPageState extends State<Step2QuestionPage> {
     '만남에서 피하고 싶은 것들을 작성해주세요.',
   ];
   static const _hints = [
-    'ex) 성신여자대학교 예술디자인대학',
+    'ex) 경희대학교 국제캠퍼스',
     'ex) 이동시간이 최소화되었으면 좋겠다',
     'ex) 시끄러운 곳은 피하고 싶다',
   ];

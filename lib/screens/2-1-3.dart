@@ -1,6 +1,8 @@
 // ignore_for_file: file_names, camel_case_types
 import 'package:flutter/material.dart';
 
+import '../config/app_config.dart';
+import '../models/quick_recommendation.dart';
 import '../services/backend_client.dart';
 import '3-1.dart';
 import 'step2_question_page.dart';
@@ -34,27 +36,34 @@ class _Screen2_1_3State extends State<Screen2_1_3> {
     if (_isSubmitting) return;
     if (widget.answers.depLoc.trim().isEmpty ||
         widget.answers.likeText.trim().isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('출발 장소와 원하는 약속을 입력해주세요.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('출발 장소와 원하는 약속을 입력해주세요.')),
+      );
       return;
     }
     setState(() => _isSubmitting = true);
     try {
-      final payload = Step2Answers.toRequestJson([widget.answers]);
-      if (widget.answers.toPersonJson()['text']!.length > 500) {
-        throw const BackendConnectionException('답변을 합쳐 500자 이내로 입력해주세요.');
+      final payload = Step2Answers.toRequestJson(
+        [widget.answers],
+        name: AppConfig.memberName,
+      );
+      final person = (payload['people'] as List).first as Map<String, dynamic>;
+      if ((person['text'] as String).length > 500) {
+        throw const FormatException('답변을 합쳐 500자 이내로 입력해주세요.');
       }
-      final result = await _backendClient.submitPeople(payload);
+      final response = await _backendClient.submitPeople(payload);
+      final recommendations = QuickRecommendation.parseResponse(response.body);
       if (!mounted) return;
-      await Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => Screen3_1(result: result)));
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => Screen3_1(recommendations: recommendations),
+        ),
+      );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('추천 요청에 실패했어요. $error')),
+      );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
